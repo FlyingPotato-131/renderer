@@ -1,5 +1,7 @@
 #pragma once
 #include "structs.h"
+#include <cmath>
+#include <iostream>
 
 //3D vectors
 
