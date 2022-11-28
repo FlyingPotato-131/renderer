@@ -3,6 +3,10 @@
 
 struct vec3{
 	float x, y, z;
+	float &operator[](std::ptrdiff_t const i) noexcept
+    {
+        return (&x)[i];
+    }
 };
 
 struct vec2{
