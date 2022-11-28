@@ -12,12 +12,10 @@ struct vec2{
 struct ray{
 	vec3 orig;
 	vec3 drct;
-
-	vec3 point(float const t) const {return origin + direction * t;}
 };
 
 struct triangle{
-	vec3 a, b, c;
+	vec3 A, B, C;
 };
 
 struct plane{
@@ -30,8 +28,10 @@ struct color{
 };
 
 struct intersection{
-	vec3 point;
-	int index;
+	bool exists;
+	int triangle;
+	int vertex;
+	float a, b;
 };
 
 struct normal{
@@ -40,31 +40,5 @@ struct normal{
 };
 
 struct indextriangle{
-	int a, b, c;
-};
-
-struct Camera
-{
-    vec3 position;
-    vec3 at;
-    vec3 up;
-    float aspectRatio;
-    float verticalFOV;
-
-    // u, v ∈ [-1;1]
-    ray castRay(float const u, float const v) const
-    {
-        vec3 const z = normalize(position - at);
-        vec3 const x = normalize(cross(up, z));
-        vec3 const y = cross(z, x);
-
-        vec3 const d = x * (u * verticalFOV * aspectRatio)
-                     + y * (v * verticalFOV)
-                     - z;
-        return
-        {
-            .origin = position,
-            .direction = normalize(d),
-        };
-    }
+	int A, B, C;
 };
