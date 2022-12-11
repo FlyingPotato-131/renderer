@@ -1,5 +1,5 @@
 #pragma once
-#include <cmath>
+#include <iostream>
 
 struct vec3{
 	float x, y, z;
