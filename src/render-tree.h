@@ -309,14 +309,8 @@ intersection raytree(ray r, boxtree box){
 			}
 		}else if(boxray(r, std::get<boxnode::branches>(box->next).left->box)){
 			sect = raytree(r, std::get<boxnode::branches>(box->next).left);
-			if(!sect.exists){
-				sect = raytree(r, std::get<boxnode::branches>(box->next).left);
-			}
 		}else if(boxray(r, std::get<boxnode::branches>(box->next).right->box)){
 			sect = raytree(r, std::get<boxnode::branches>(box->next).left);
-			if(!sect.exists){
-				sect = raytree(r, std::get<boxnode::branches>(box->next).right);
-			}	
 		}
 	}
 	return sect;
