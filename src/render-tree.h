@@ -1,4 +1,4 @@
-//#pragma once
+#pragma once
 #include "structs.h"
 #include "functions.h"
 #include <vector>
@@ -98,7 +98,7 @@ boundingbox operator+(boundingbox b1, boundingbox b2){
 	return {center, (maxx - minx)/2, (maxy - miny)/2, (maxz - minz)/2};
 }
 
-boundingbox getbox(std::vector<triangle> triangles){
+boundingbox getbox(std::span<triangle> triangles){
 	boundingbox box = getbox(triangles[0]);
 	for(triangle t:triangles){
 		box = box + getbox(t);
@@ -173,9 +173,9 @@ void splitbox(boxnode *box, std::span<triangle> triangles){
 //get median triangle
 	auto less = [i = maxcoord](vec3 a, vec3 b){return a[i] < b[i];};
 	std::nth_element(triangles.begin(), triangles.begin() + triangles.size()/2, triangles.end(), lessx);
-	float split = center(*(triangles.begin() + triangles.size()/2))[maxcoord];
+//	float split = center(*(triangles.begin() + triangles.size()/2))[maxcoord];
 //left box
-	vec3 leftc = box->box.center;
+/*	vec3 leftc = box->box.center;
 	leftc[maxcoord] = (split + box->box.center[maxcoord] - box->box[maxcoord]) / 2;
 	boundingbox left = box->box;
 	left[maxcoord] = leftc[maxcoord] - box->box.center[maxcoord] + box->box[maxcoord];
@@ -185,7 +185,10 @@ void splitbox(boxnode *box, std::span<triangle> triangles){
 	rightc[maxcoord] = (split + box->box.center[maxcoord] - box->box[maxcoord]) / 2;
 	boundingbox right = box->box;
 	right[maxcoord] = rightc[maxcoord] - box->box.center[maxcoord] + box->box[maxcoord];
-	right.center = rightc;
+	right.center = rightc;*/
+//boxes
+	boundingbox left = getbox(triangles.first(triangles.size()/2));
+	boundingbox right = getbox(triangles.last(triangles.size()/2));
 //create nodes
 	boxnode *leftnode = static_cast<boxnode *>(std::malloc(sizeof(boxnode)));
 	leftnode -> box = left;
@@ -212,6 +215,29 @@ bool boxray(ray r, boundingbox box){
 	return X >= y && Y >= x
 	    && Y >= z && Z >= y
 	    && X >= z && Z >= x;
+}
+
+struct boxraystate{
+	bool exists;
+	float x, X, y, Y, z, Z;
+};
+
+boxraystate boxrayfull(ray r, boundingbox box){
+	boxraystate state;
+
+	float x = (box.center.x - box.rx - r.orig.x)/r.drct.x;
+	float X = (box.center.x + box.rx - r.orig.x)/r.drct.x;
+
+	float y = (box.center.y - box.ry - r.orig.y)/r.drct.y;
+	float Y = (box.center.y + box.ry - r.orig.y)/r.drct.y;
+
+	float z = (box.center.z - box.rz - r.orig.z)/r.drct.z;
+	float Z = (box.center.z + box.rz - r.orig.z)/r.drct.z;
+
+	return {X >= y && Y >= x
+	    && Y >= z && Z >= y
+	    && X >= z && Z >= x,
+	    x, X, y, Y, z, Z};
 }
 
 using indexes = std::vector<int>;
@@ -242,14 +268,14 @@ using indexes = std::vector<int>;
 	}
 }*/
 
-void createtree(boxtree box, std::span<triangle> triangles){
+void continuetree(boxtree box, std::span<triangle> triangles){
 	if(triangles.size() == 1){
 		box -> next = triangles[0];
 	}else{
 		splitbox(box, triangles);
 		auto len = triangles.size();
-		createtree(std::get<boxnode::branches>(box->next).left, std::span(triangles.begin(), triangles.begin() + len / 2));
-		createtree(std::get<boxnode::branches>(box->next).right, std::span(triangles.begin() + len / 2 + 1, triangles.end()));
+		continuetree(std::get<boxnode::branches>(box->next).left, std::span(triangles.begin(), triangles.begin() + len / 2));
+		continuetree(std::get<boxnode::branches>(box->next).right, std::span(triangles.begin() + len / 2, triangles.end()));
 	}
 }
 
@@ -262,12 +288,47 @@ intersection raytree(ray r, boxtree box){
 		sect.exists = trysect.exists;
 		sect.a = trysect.a;
 		sect.b = trysect.b;
+		sect.face = std::get<triangle>(box->next);
+		sect.vertex = std::get<triangle>(box->next).C;
+	}else{
+		if(boxray(r, std::get<boxnode::branches>(box->next).left->box) && boxray(r, std::get<boxnode::branches>(box->next).right->box)){
+			boxraystate leftstate = boxrayfull(r, std::get<boxnode::branches>(box->next).left->box);
+			std::vector<float> leftcoords = {leftstate.x, leftstate.X, leftstate.y, leftstate.Y, leftstate.z, leftstate.Z};
+			boxraystate rightstate = boxrayfull(r, std::get<boxnode::branches>(box->next).right->box);
+			std::vector<float> rightcoords = {rightstate.x, rightstate.X, rightstate.y, rightstate.Y, rightstate.z, rightstate.Z};
+			if(*min_element(leftcoords.begin(), leftcoords.end()) > *min_element(rightcoords.begin(), rightcoords.end())){
+				sect = raytree(r, std::get<boxnode::branches>(box->next).left);
+				if(!sect.exists){
+					sect = raytree(r, std::get<boxnode::branches>(box->next).left);
+				}
+			}else{
+				sect = raytree(r, std::get<boxnode::branches>(box->next).left);
+				if(!sect.exists){
+					sect = raytree(r, std::get<boxnode::branches>(box->next).right);
+				}
+			}
+		}else if(boxray(r, std::get<boxnode::branches>(box->next).left->box)){
+			sect = raytree(r, std::get<boxnode::branches>(box->next).left);
+			if(!sect.exists){
+				sect = raytree(r, std::get<boxnode::branches>(box->next).left);
+			}
+		}else if(boxray(r, std::get<boxnode::branches>(box->next).right->box)){
+			sect = raytree(r, std::get<boxnode::branches>(box->next).left);
+			if(!sect.exists){
+				sect = raytree(r, std::get<boxnode::branches>(box->next).right);
+			}	
+		}
 	}
 	return sect;
 }
 
-int main(){
-	return 0;
+boxtree generatetree(std::vector<triangle> triangles){
+	boundingbox mainbox = getmodelbox();
+	boxtree boxroot = static_cast<boxtree>(std::malloc(sizeof(boxnode)));
+	// boxnode boxroot;
+	boxroot->box = mainbox;
+	continuetree(boxroot, std::span(triangles.begin(), triangles.end()));
+	return boxroot;
 }
 
 /*int gettriangle(ray r, boxtree box, indexes tri){
