@@ -33,7 +33,7 @@ struct color{
 
 struct intersection{
 	bool exists;
-	int triangle;
+	triangle face;
 	int vertex;
 	float a, b;
 };

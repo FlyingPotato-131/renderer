@@ -4,6 +4,7 @@
 #include <vector>
 #include <variant>
 #include <algorithm>
+#include <span>
 
 std::vector<vec3> vertices;
 std::vector<triangle> triangles;
@@ -111,7 +112,7 @@ struct boxnode{
 		boxnode *right;
 	};
 	boundingbox box;
-	std::variant<branches, vec3> next;
+	std::variant<branches, triangle> next;
 };
 
 using boxtree = boxnode *;
@@ -167,23 +168,11 @@ bool lessz(triangle t1, triangle t2){
 	return center(t1).z < center(t2).z;
 }
 
-void splitbox(boxnode *box, std::vector<triangle> triangles){
+void splitbox(boxnode *box, std::span<triangle> triangles){
 	int maxcoord = box->box.rx >= box->box.ry && box->box.rx >= box->box.rz ? 0 : box->box.ry > box->box.rz ? 1 : 2;
-//get median triangle	
-	if(maxcoord == 0){
-		std::nth_element(triangles.begin(), triangles.begin() + triangles.size()/2, triangles.end(), lessx);
-		auto isleft = [mid = *(triangles.begin() + triangles.size()/2)](triangle t){return center(t).x < center(mid).x;};
-		std::partition(triangles.begin(), triangles.end(), isleft);
-	}else if(maxcoord == 1){
-		std::nth_element(triangles.begin(), triangles.begin() + triangles.size()/2, triangles.end(), lessy);
-		auto isleft = [mid = *(triangles.begin() + triangles.size()/2)](triangle t){return center(t).y < center(mid).y;};
-		std::partition(triangles.begin(), triangles.end(), isleft);
-	}else{
-		std::nth_element(triangles.begin(), triangles.begin() + triangles.size()/2, triangles.end(), lessz);
-		auto isleft = [mid = *(triangles.begin() + triangles.size()/2)](triangle t){return center(t).y < center(mid).y;};
-		std::partition(triangles.begin(), triangles.end(), isleft);
-	}
-
+//get median triangle
+	auto less = [i = maxcoord](vec3 a, vec3 b){return a[i] < b[i];};
+	std::nth_element(triangles.begin(), triangles.begin() + triangles.size()/2, triangles.end(), lessx);
 	float split = center(*(triangles.begin() + triangles.size()/2))[maxcoord];
 //left box
 	vec3 leftc = box->box.center;
@@ -253,12 +242,32 @@ using indexes = std::vector<int>;
 	}
 }*/
 
-void createtree(boxtree box, std::vector<triangle> triangles){
+void createtree(boxtree box, std::span<triangle> triangles){
 	if(triangles.size() == 1){
 		box -> next = triangles[0];
 	}else{
-		
+		splitbox(box, triangles);
+		auto len = triangles.size();
+		createtree(std::get<boxnode::branches>(box->next).left, std::span(triangles.begin(), triangles.begin() + len / 2));
+		createtree(std::get<boxnode::branches>(box->next).right, std::span(triangles.begin() + len / 2 + 1, triangles.end()));
 	}
+}
+
+intersection raytree(ray r, boxtree box){
+	intersection sect;
+	if(!boxray(r, box->box)){
+		sect.exists = 0;
+	}else if(holds_alternative<triangle>(box->next)){
+		basicintersection trysect = basicintersect(r, std::get<triangle>(box->next));
+		sect.exists = trysect.exists;
+		sect.a = trysect.a;
+		sect.b = trysect.b;
+	}
+	return sect;
+}
+
+int main(){
+	return 0;
 }
 
 /*int gettriangle(ray r, boxtree box, indexes tri){
