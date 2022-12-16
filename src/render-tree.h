@@ -11,14 +11,15 @@ std::vector<triangle> triangles;
 
 struct boundingbox{
 	vec3 center;
-	float rx, ry, rz;
+	float rx, ry, rz; // box by center and half sides
 
 	float &operator[](std::ptrdiff_t const i) noexcept
 	{
-	    return (&rx)[i];
+	    return (&rx)[i]; // get side on axis i (1, 2, 3) -> (x, y, z)
 	}
 };
 
+//min and max of 3 floats
 float max3(float a, float b, float c){
 	return a > b && a > c ? a : b > c ? b : c;
 }
@@ -27,21 +28,23 @@ float min3(float a, float b, float c){
 	return a < b && a < c ? a : b < c ? b : c;
 }
 
+//bounding box of a triangle
 boundingbox getbox(triangle t){
-	float maxx = max3(t.A.x, t.B.x, t.C.x);
-	float minx = min3(t.A.x, t.B.x, t.C.x);
+	float maxx = max3(t.A.pos.x, t.B.pos.x, t.C.pos.x);
+	float minx = min3(t.A.pos.x, t.B.pos.x, t.C.pos.x);
 
-	float maxy = max3(t.A.y, t.B.y, t.C.y);
-	float miny = min3(t.A.y, t.B.y, t.C.y);
+	float maxy = max3(t.A.pos.y, t.B.pos.y, t.C.pos.y);
+	float miny = min3(t.A.pos.y, t.B.pos.y, t.C.pos.y);
 
-	float maxz = max3(t.A.z, t.B.z, t.C.z);
-	float minz = min3(t.A.z, t.B.z, t.C.z);
+	float maxz = max3(t.A.pos.z, t.B.pos.z, t.C.pos.z);
+	float minz = min3(t.A.pos.z, t.B.pos.z, t.C.pos.z);
 
 	vec3 center = {(maxx + minx)/2, (maxy + miny)/2, (maxz + minz)/2};
 
 	return {center, (maxx - minx)/2, (maxy - miny)/2, (maxz - minz)/2};
 }
 
+//min and max of std::vector
 float max(std::vector<vec3> vct, int axis){
 	unsigned int max = 0;
 
@@ -64,6 +67,7 @@ float min(std::vector<vec3> vct, int axis){
 	return vct[min][axis];
 }
 
+//get bounding box from global vertices std::vector
 boundingbox getmodelbox(){
 	float maxx = max(vertices, 0);
 	float minx = min(vertices, 0);
@@ -79,10 +83,28 @@ boundingbox getmodelbox(){
 	return {center, (maxx - minx)/2, (maxy - miny)/2, (maxz - minz)/2};
 }
 
-vec3 center(triangle t){
-	return (t.A+t.B+t.C)/3;
+//get bounding box from std::vector of vertices
+boundingbox getbox(std::vector<vec3> vertices){
+	float maxx = max(vertices, 0);
+	float minx = min(vertices, 0);
+
+	float maxy = max(vertices, 1);
+	float miny = min(vertices, 1);
+
+	float maxz = max(vertices, 2);
+	float minz = min(vertices, 2);
+
+	vec3 center = {(maxx + minx)/2, (maxy + miny)/2, (maxz + minz)/2};
+
+	return {center, (maxx - minx)/2, (maxy - miny)/2, (maxz - minz)/2};
 }
 
+//get triangle center
+vec3 center(triangle t){
+	return (t.A.pos+t.B.pos+t.C.pos)/3;
+}
+
+//add bounding boxes
 boundingbox operator+(boundingbox b1, boundingbox b2){
 	float maxx = std::max(b1.center.x + b1.rx, b2.center.x + b2.rx);
 	float minx = std::min(b1.center.x - b1.rx, b2.center.x - b2.rx);
@@ -98,6 +120,7 @@ boundingbox operator+(boundingbox b1, boundingbox b2){
 	return {center, (maxx - minx)/2, (maxy - miny)/2, (maxz - minz)/2};
 }
 
+//get box from std::span of triangles
 boundingbox getbox(std::span<triangle> triangles){
 	boundingbox box = getbox(triangles[0]);
 	for(triangle t:triangles){
@@ -107,12 +130,12 @@ boundingbox getbox(std::span<triangle> triangles){
 }
 
 struct boxnode{
-	struct branches{
+	struct branches{	//branches in boxnode for breaking recursion
 		boxnode *left;
 		boxnode *right;
 	};
 	boundingbox box;
-	std::variant<branches, triangle> next;
+	std::variant<branches, triangle> next; //child either pointers to 2 other boxnodes or triangle
 };
 
 using boxtree = boxnode *;
@@ -141,13 +164,14 @@ void splitbox(boxnode *box){
 	box -> next = boxnode::branches{leftnode, rightnode};
 }*/
 
+//if vec3 is in box
 bool contains(vec3 point, boundingbox box){
 	return box.center.x - box.rx <= point.x && point.x <= box.center.x + box.rx
 		&& box.center.y - box.ry <= point.y && point.y <= box.center.y + box.ry
 		&& box.center.z - box.rz <= point.z && point.z <= box.center.z + box.rz;
 }
 
-
+//number of triangles from vector in box
 int numtri(boundingbox box, std::vector<triangle> triangles){
 	int n = 0;
 	for(triangle t:triangles){
@@ -158,6 +182,7 @@ int numtri(boundingbox box, std::vector<triangle> triangles){
 	return n;
 }
 
+//compare triangles by center coords (deprecated)
 bool lessx(triangle t1, triangle t2){
 	return center(t1).x < center(t2).x;
 }
@@ -168,6 +193,7 @@ bool lessz(triangle t1, triangle t2){
 	return center(t1).z < center(t2).z;
 }
 
+//create boxnode * children with equal amount of triangles from boxnode * and span of triangles
 void splitbox(boxnode *box, std::span<triangle> triangles){
 	int maxcoord = box->box.rx >= box->box.ry && box->box.rx >= box->box.rz ? 0 : box->box.ry > box->box.rz ? 1 : 2;
 //get median triangle
@@ -199,6 +225,7 @@ void splitbox(boxnode *box, std::span<triangle> triangles){
 	box -> next = boxnode::branches{leftnode, rightnode};
 }
 
+//if ray intersects box
 bool boxray(ray r, boundingbox box){
 	if(contains(r.orig, box)){
 		return true;
@@ -219,9 +246,10 @@ bool boxray(ray r, boundingbox box){
 
 struct boxraystate{
 	bool exists;
-	float x, X, y, Y, z, Z;
+	float x, X, y, Y, z, Z;	//min and max values of t from coords if ray is r = r0 + at
 };
 
+//same as boxray but more info
 boxraystate boxrayfull(ray r, boundingbox box){
 	boxraystate state;
 
@@ -240,7 +268,7 @@ boxraystate boxrayfull(ray r, boundingbox box){
 	    x, X, y, Y, z, Z};
 }
 
-using indexes = std::vector<int>;
+//using indexes = std::vector<int>;
 
 /*void createtree(boxtree box, indexes tri, std::vector<vec3> centers){
 	if(tri.size() == 0){
@@ -268,6 +296,7 @@ using indexes = std::vector<int>;
 	}
 }*/
 
+//create children of boxnode * and span of triangles in said boxnode
 void continuetree(boxtree box, std::span<triangle> triangles){
 	if(triangles.size() == 1){
 		box -> next = triangles[0];
@@ -279,35 +308,36 @@ void continuetree(boxtree box, std::span<triangle> triangles){
 	}
 }
 
+//intersect ray with boxtree
 intersection raytree(ray r, boxtree box){
 	intersection sect;
-	if(!boxray(r, box->box)){
+	if(!boxray(r, box->box)){	//if intersection exists
 		sect.exists = 0;
-	}else if(holds_alternative<triangle>(box->next)){
+	}else if(holds_alternative<triangle>(box->next)){	//if child is triangle
 		basicintersection trysect = basicintersect(r, std::get<triangle>(box->next));
 		sect.exists = trysect.exists;
 		sect.a = trysect.a;
 		sect.b = trysect.b;
 		sect.face = std::get<triangle>(box->next);
-		sect.vertex = std::get<triangle>(box->next).C;
-	}else{
-		if(boxray(r, std::get<boxnode::branches>(box->next).left->box) && boxray(r, std::get<boxnode::branches>(box->next).right->box)){
+		sect.vertex = std::get<triangle>(box->next).C.pos;
+	}else{	//if child is not triangle (obviously)
+		if(boxray(r, std::get<boxnode::branches>(box->next).left->box) && boxray(r, std::get<boxnode::branches>(box->next).right->box)){	//if ray intersects both children
 			boxraystate leftstate = boxrayfull(r, std::get<boxnode::branches>(box->next).left->box);
 			std::vector<float> leftcoords = {leftstate.x, leftstate.X, leftstate.y, leftstate.Y, leftstate.z, leftstate.Z};
 			boxraystate rightstate = boxrayfull(r, std::get<boxnode::branches>(box->next).right->box);
 			std::vector<float> rightcoords = {rightstate.x, rightstate.X, rightstate.y, rightstate.Y, rightstate.z, rightstate.Z};
-			if(*min_element(leftcoords.begin(), leftcoords.end()) > *min_element(rightcoords.begin(), rightcoords.end())){
+			if(*min_element(leftcoords.begin(), leftcoords.end()) > *min_element(rightcoords.begin(), rightcoords.end())){	//pick closest box for inspecting first
 				sect = raytree(r, std::get<boxnode::branches>(box->next).left);
-				if(!sect.exists){
+				if(!sect.exists){	//if no intersection in first box inspect second
 					sect = raytree(r, std::get<boxnode::branches>(box->next).left);
 				}
-			}else{
+			}else{	//same code but reversed (if left is first)
 				sect = raytree(r, std::get<boxnode::branches>(box->next).left);
 				if(!sect.exists){
 					sect = raytree(r, std::get<boxnode::branches>(box->next).right);
 				}
 			}
-		}else if(boxray(r, std::get<boxnode::branches>(box->next).left->box)){
+		}else if(boxray(r, std::get<boxnode::branches>(box->next).left->box)){	//if ray intersects only one child
 			sect = raytree(r, std::get<boxnode::branches>(box->next).left);
 		}else if(boxray(r, std::get<boxnode::branches>(box->next).right->box)){
 			sect = raytree(r, std::get<boxnode::branches>(box->next).left);
@@ -316,13 +346,23 @@ intersection raytree(ray r, boxtree box){
 	return sect;
 }
 
+//create tree using continuetree
 boxtree generatetree(std::vector<triangle> triangles){
-	boundingbox mainbox = getmodelbox();
+	boundingbox mainbox = getbox(triangles);
 	boxtree boxroot = static_cast<boxtree>(std::malloc(sizeof(boxnode)));
 	// boxnode boxroot;
 	boxroot->box = mainbox;
 	continuetree(boxroot, std::span(triangles.begin(), triangles.end()));
 	return boxroot;
+}
+
+//delete tree
+void deletetree(boxtree box){
+	if(holds_alternative<boxnode::branches>(box->next)){
+		deletetree(std::get<boxnode::branches>(box->next).right);
+		deletetree(std::get<boxnode::branches>(box->next).left);
+	}
+	std::free(box);
 }
 
 /*int gettriangle(ray r, boxtree box, indexes tri){

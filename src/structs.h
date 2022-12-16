@@ -18,8 +18,14 @@ struct ray{
 	vec3 drct;
 };
 
+struct vertex{
+	vec3 pos;
+	vec2 tex;
+	vec3 norm;
+};
+
 struct triangle{
-	vec3 A, B, C;
+	vertex A, B, C;
 };
 
 struct plane{
