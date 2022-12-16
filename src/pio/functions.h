@@ -134,9 +134,9 @@ struct basicintersection{
 
 inline basicintersection basicintersect(ray const &ray, triangle const &triangle)
 {
-    vec3 const b = triangle.A - triangle.C;
-    vec3 const a = triangle.B - triangle.C;
-    vec3 const c = ray.orig - triangle.C;
+    vec3 const b = triangle.A.pos - triangle.C.pos;
+    vec3 const a = triangle.B.pos - triangle.C.pos;
+    vec3 const c = ray.orig - triangle.C.pos;
     vec3 const d = ray.drct;
     
     float const det0 = dot( d, cross(a, b));

@@ -30,14 +30,14 @@ float min3(float a, float b, float c){
 
 //bounding box of a triangle
 boundingbox getbox(triangle t){
-	float maxx = max3(t.A.x, t.B.x, t.C.x);
-	float minx = min3(t.A.x, t.B.x, t.C.x);
+	float maxx = max3(t.A.pos.x, t.B.pos.x, t.C.pos.x);
+	float minx = min3(t.A.pos.x, t.B.pos.x, t.C.pos.x);
 
-	float maxy = max3(t.A.y, t.B.y, t.C.y);
-	float miny = min3(t.A.y, t.B.y, t.C.y);
+	float maxy = max3(t.A.pos.y, t.B.pos.y, t.C.pos.y);
+	float miny = min3(t.A.pos.y, t.B.pos.y, t.C.pos.y);
 
-	float maxz = max3(t.A.z, t.B.z, t.C.z);
-	float minz = min3(t.A.z, t.B.z, t.C.z);
+	float maxz = max3(t.A.pos.z, t.B.pos.z, t.C.pos.z);
+	float minz = min3(t.A.pos.z, t.B.pos.z, t.C.pos.z);
 
 	vec3 center = {(maxx + minx)/2, (maxy + miny)/2, (maxz + minz)/2};
 
@@ -101,7 +101,7 @@ boundingbox getbox(std::vector<vec3> vertices){
 
 //get triangle center
 vec3 center(triangle t){
-	return (t.A+t.B+t.C)/3;
+	return (t.A.pos+t.B.pos+t.C.pos)/3;
 }
 
 //add bounding boxes
@@ -319,7 +319,7 @@ intersection raytree(ray r, boxtree box){
 		sect.a = trysect.a;
 		sect.b = trysect.b;
 		sect.face = std::get<triangle>(box->next);
-		sect.vertex = std::get<triangle>(box->next).C;
+		sect.vertex = std::get<triangle>(box->next).C.pos;
 	}else{	//if child is not triangle (obviously)
 		if(boxray(r, std::get<boxnode::branches>(box->next).left->box) && boxray(r, std::get<boxnode::branches>(box->next).right->box)){	//if ray intersects both children
 			boxraystate leftstate = boxrayfull(r, std::get<boxnode::branches>(box->next).left->box);
