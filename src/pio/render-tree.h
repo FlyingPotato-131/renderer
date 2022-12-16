@@ -356,6 +356,15 @@ boxtree generatetree(std::vector<triangle> triangles){
 	return boxroot;
 }
 
+//delete tree
+void deletetree(boxtree box){
+	if(holds_alternative<boxnode::branches>(box->next)){
+		deletetree(std::get<boxnode::branches>(box->next).right);
+		deletetree(std::get<boxnode::branches>(box->next).left);
+	}
+	std::free(box);
+}
+
 /*int gettriangle(ray r, boxtree box, indexes tri){
 	if(tri.size() == 1){
 		return tri[0];
