@@ -79,6 +79,21 @@ boundingbox getmodelbox(){
 	return {center, (maxx - minx)/2, (maxy - miny)/2, (maxz - minz)/2};
 }
 
+boundingbox getbox(std::vector<vec3> vertices){
+	float maxx = max(vertices, 0);
+	float minx = min(vertices, 0);
+
+	float maxy = max(vertices, 1);
+	float miny = min(vertices, 1);
+
+	float maxz = max(vertices, 2);
+	float minz = min(vertices, 2);
+
+	vec3 center = {(maxx + minx)/2, (maxy + miny)/2, (maxz + minz)/2};
+
+	return {center, (maxx - minx)/2, (maxy - miny)/2, (maxz - minz)/2};
+}
+
 vec3 center(triangle t){
 	return (t.A+t.B+t.C)/3;
 }
@@ -317,7 +332,7 @@ intersection raytree(ray r, boxtree box){
 }
 
 boxtree generatetree(std::vector<triangle> triangles){
-	boundingbox mainbox = getmodelbox();
+	boundingbox mainbox = getbox(triangles);
 	boxtree boxroot = static_cast<boxtree>(std::malloc(sizeof(boxnode)));
 	// boxnode boxroot;
 	boxroot->box = mainbox;
