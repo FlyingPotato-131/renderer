@@ -1,0 +1,1 @@
+/usr/bin/c++ -rdynamic CMakeFiles/test.dir/src/app/main.cpp.o -o test  -lsfml-system -lsfml-window -lsfml-graphics -lsfml-audio -lsfml-network 
