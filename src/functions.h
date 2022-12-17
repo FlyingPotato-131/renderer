@@ -125,6 +125,12 @@ inline vec2 normalize(vec2 const &v)
     return v / length(v);
 }
 
+//colors
+
+inline color operator*(color c, float f){
+    return {u_char(c.r * f), u_char(c.g * f), u_char(c.b * f)};
+}
+
 //intersections
 
 struct basicintersection{

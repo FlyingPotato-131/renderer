@@ -2,7 +2,7 @@
 
 int main()
 {
-    sf::Window window(sf::VideoMode(800, 600), "My window");
-
+    sf::Window window(sf::VideoMode(1920, 1080), "render");
+    
     return 0;
 }

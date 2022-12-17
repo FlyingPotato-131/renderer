@@ -34,7 +34,7 @@ struct plane{
 };
 
 struct color{
-	int r, g, b;
+	unsigned char r, g, b;
 };
 
 struct intersection{
