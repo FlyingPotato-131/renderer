@@ -126,9 +126,14 @@ inline vec2 normalize(vec2 const &v)
 }
 
 //colors
-
-inline color operator*(color c, float f){
+inline color operator+(color const &c1, color const &c2){
+    return{u_char(c1.r + c2.r), u_char(c1.g + c2.b), u_char(c1.b + c2.b)};
+}
+inline color operator*(color const &c, float const &f){
     return {u_char(c.r * f), u_char(c.g * f), u_char(c.b * f)};
+}
+inline color operator*(color const &c1, color const &c2){
+    return{u_char(c1.r * c2.r), u_char(c1.g * c2.g), u_char(c1.b * c2.b)};
 }
 
 //intersections

@@ -8,7 +8,6 @@
 
 color background;
 vec3 light;
-color objectcolor;
 
 struct texture{
 	color *map;
@@ -43,11 +42,12 @@ color shade(ray r, boxtree box, color pxcolor){
 	vec3 sectpos = sect.vertex + a + b;
 
 	vec3 norm = (sect.face.A.norm * la + sect.face.B.norm * lb + sect.face.C.norm * lc) / (la + lb + lc);
-	ray shadow = {sectpos, normalize(sectpos - light)};
+	ray shadow = {sectpos, normalize(light - sectpos)};
 
 	intersection shadowray = raytree(shadow, box);
 
 	float brightness = shadowray.exists ? 0 : std::max(0.f, dot(norm, sectpos - light));
+	color lightcolor = {1, 1, 1};
 
-	return(pxcolor * brightness);
+	return(pxcolor * (lightcolor * brightness + background * 0.3));
 }
