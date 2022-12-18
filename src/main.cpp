@@ -1,4 +1,3 @@
-#pragma once
 #include "structs.h"
 #include "functions.h"
 #include <SFML/Window.hpp>
@@ -6,7 +5,7 @@
 #include <SFML/System.hpp>
 //#include <chrono>
 //#include <random>
-#include "parse.cpp"
+#include "parse.h"
 #include "coloring.h"
 #include "render-tree.h"
 
@@ -15,7 +14,6 @@
 
 int main()
 {
-<<<<<<< HEAD
   //  std::string line;
   //  std::ifstream in("Home/renderer/src/CedCo - LiAs R17 Venom II Revamp_export.obj");
     Camera camera = 
@@ -27,33 +25,20 @@ int main()
         .verticalFOV = 0.55f,
     };
 
-    Structs("CedCo - LiAs R17 Venom II Revamp_export.obj");
-    boxtree object = generatetree();
+    std::vector <triangle> mesh = Structs("CedCo - LiAs R17 Venom II Revamp_export.obj");
+    boxtree object = generatetree(mesh);  
 
-    for (int w = 0; w < 1920; w++)
-    {
-        for (int h = 0; h < 1200; h++)
-        {
-            intersection cross = raytree(camera.castRay((w-810)/1920, (h-600)/1200));
-            color cl = color(cross);
-            image.setPixel(w,h,sf::Color(cl.r, cl.g, cl.b, 255));
-        }
-    }
-
+    sf::RenderWindow window(sf::VideoMode(1920, 1080), "My window");
     
-
-    sf::RenderWindow window(sf::VideoMode(1920, 1200), "My window");
-    
- 
-    void sf::Texture::update(const Uint8 * pixels) 	
-    sf::Texture texture;
-    texture.create(w,h) ;
-    texture.update(sf::Uint8* cross,100,100,0,0);
+    //void sf::Texture::update(const Uint8 * pixels) 	
+    //sf::Texture texture;
+    //texture.create(w,h) ;
+    //texture.update(sf::Uint8* cross,100,100,0,0);
 
 
-    sf::Sprite sprite(texture);
+    //sf::Sprite sprite(texture);
     //sprite.setTexture(t_rd);
-    sprite.setPosition(400,400);
+    //sprite.setPosition(400,400);
 
 
     while (window.isOpen())
@@ -65,14 +50,32 @@ int main()
             window.close();
         }
 
+        sf::Uint8* pixels = new sf::Uint8[1920*1080*4];
+
+        sf::Texture image;
+        image.create(1920, 1080);
+        sf::Sprite sprite(image);
+
+        for (int h = 0; h < 1080; h++)
+        {
+            for (int w = 0; w < 1920; w++)
+            {
+                color pxcolor = {u_char(239), u_char(113), u_char(169)};
+                color cl = shade(camera.castRay((w - 810) / 1920, (h - 600) / 1080), object, pxcolor);
+                pixels[(h * 1920 + w) * 4] = cl.r;
+                pixels[(h * 1920 + w) * 4 + 1] = cl.g;
+                pixels[(h * 1920 + w) * 4 + 2] = cl.b;
+                pixels[(h * 1920 + w) * 4 + 3] = 1;
+            }
+        }
+
+        image.update(pixels);
+
         window.clear(sf::Color:: Black);
-        window.draw(sprite);
+        //window.draw(sprite);
         window.display();
     }
 
-=======
-    sf::Window window(sf::VideoMode(1920, 1080), "render");
-    
->>>>>>> 66f1079b299afac912ea15a8cf60f0d48576b90a
+    //sf::Window window(sf::VideoMode(1920, 1080), "render");
     return 0;
 }
