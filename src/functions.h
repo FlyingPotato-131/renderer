@@ -73,7 +73,7 @@ inline vec3 normalize(vec3 const &v)
 
 //2D vectors
 
-inline vec2 operator+(vec2 const &v1, vec3 const &v2)
+inline vec2 operator+(vec2 const &v1, vec2 const &v2)
 {
     return
     {
@@ -81,7 +81,7 @@ inline vec2 operator+(vec2 const &v1, vec3 const &v2)
         v1.y + v2.y
     };
 }
-inline vec2 operator-(vec2 const &v1, vec3 const &v2)
+inline vec2 operator-(vec2 const &v1, vec2 const &v2)
 {
     return
     {
@@ -145,21 +145,21 @@ struct basicintersection{
 
 inline basicintersection basicintersect(ray const &ray, triangle const &triangle)
 {
-    vec3 const b = triangle.A.pos - triangle.C.pos;
-    vec3 const a = triangle.B.pos - triangle.C.pos;
+    vec3 const a = triangle.A.pos - triangle.C.pos;
+    vec3 const b = triangle.B.pos - triangle.C.pos;
     vec3 const c = ray.orig - triangle.C.pos;
     vec3 const d = ray.drct;
     
-    float const det0 = dot( d, cross(a, b));
-    float const det1 = dot(-c, cross(a, b));
-    float const deta = dot(-d, cross(c, a));
-    float const detb = dot(-d, cross(b, c));
+    float const det0 = dot(-d, cross(a, b));
+    float const det1 = dot( c, cross(a, b));
+    float const deta = dot(-d, cross(c, b));
+    float const detb = dot(-d, cross(a, c));
 
 	float alpha = deta / det0;
 	float beta = detb / det0;
 	float dist = det1 / det0;
 
-    bool const exists = alpha >= 0.f && beta >= 0.f && alpha + beta <= 1.f;
+    bool const exists = alpha >= 0.f && beta >= 0.f && alpha + beta <= 1.f && dist > 1e-4;
     return {exists, alpha, beta, dist};
 }
 

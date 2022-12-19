@@ -42,6 +42,7 @@ struct intersection{
 	triangle face;
 	vec3 vertex;
 	float a, b;
+	float dist;
 };
 
 struct normal{
