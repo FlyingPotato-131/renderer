@@ -32,7 +32,7 @@ std::vector<triangle> Structs(const char * filename)
 		const char * c = line.c_str();
 
 		if ( 3 == sscanf(c, "v %f %f %f", &v.x, &v.y, &v.z ))
-            vertices.push_back(v);
+            		vertices.push_back(v);
 		else if ( 3 == sscanf(c, "vn %f %f %f", &vn.x, &vn.y, &vn.z ))
 			normals.push_back(vn);
 		else if ( 2 == sscanf(c, "vt %f %f", &vt.x, &vt.y ))
