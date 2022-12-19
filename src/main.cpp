@@ -30,14 +30,6 @@ int main()
 {
   //  std::string line;
   //  std::ifstream in("Home/renderer/src/CedCo - LiAs R17 Venom II Revamp_export.obj");
-    Camera camera = 
-    {
-        .position = {1.5f, 0.5f, 1.5f},
-        .at = {0.f, 0.f, 0.f},
-        .up = {0.f, 1.f, 0.f},
-        .aspectRatio = 1.6,
-        .verticalFOV = 0.55f
-    };
 
     std::vector<triangle> mesh = Structs("../test-models/prop-plane/plane2.obj");
     texture colors = loadtexture("../test-models/prop-plane/texture.png");
@@ -50,6 +42,16 @@ int main()
     //std::cout << mesh[35].A.pos.x << " " << mesh[35].B.pos.x << " " << mesh[35].C.pos.x << std::endl;
     //boundingbox box = getbox(std::span(mesh.begin(), mesh.end()));
     boxtree object = generatetree(mesh);
+
+    Camera camera = 
+    {
+        .position = {2.f, 0.5f, 2.f},
+        .at = object->box.center,
+        .up = {0.f, 1.f, 0.f},
+        .aspectRatio = 1.6,
+        .verticalFOV = 0.55f
+    };
+
     std::cout << "generated tree" << std::endl;
     //printtree(object);
 

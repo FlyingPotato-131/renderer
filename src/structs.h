@@ -37,6 +37,10 @@ struct color{
 	unsigned char r, g, b;
 };
 
+// struct color{
+// 	int r, g, b;
+// };
+
 struct intersection{
 	bool exists;
 	triangle face;

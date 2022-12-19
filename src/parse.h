@@ -28,7 +28,7 @@ std::vector<triangle> Structs(const char * filename)
 	std::fstream F(filename);
 	while (std::getline(F, line))
 	{
-		std::istringstream iss(line);
+		//std::istringstream iss(line);
 		const char * c = line.c_str();
 
 		if ( 3 == sscanf(c, "v %f %f %f", &v.x, &v.y, &v.z ))

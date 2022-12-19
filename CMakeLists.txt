@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.0)
-project(test)
+project(fuckthis)
 
 add_executable(${PROJECT_NAME} src/main.cpp)
 
