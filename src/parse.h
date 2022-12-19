@@ -31,13 +31,13 @@ std::vector<triangle> Structs(const char * filename)
 		//std::istringstream iss(line);
 		const char * c = line.c_str();
 
-		if ( 3 == sscanf(c, "v %f %f %f", &v.x, &v.y, &v.z ))
+		if (3 == sscanf(c, "v %f %f %f", &v.x, &v.y, &v.z ))
             		vertices.push_back(v);
-		else if ( 3 == sscanf(c, "vn %f %f %f", &vn.x, &vn.y, &vn.z ))
+		else if (3 == sscanf(c, "vn %f %f %f", &vn.x, &vn.y, &vn.z ))
 			normals.push_back(vn);
-		else if ( 2 == sscanf(c, "vt %f %f", &vt.x, &vt.y ))
+		else if (2 == sscanf(c, "vt %f %f", &vt.x, &vt.y ))
 			textures.push_back(vt);
-		else if ( 9 == sscanf(c, "f %i/%i/%i %i/%i/%i %i/%i/%i", d, d + 1, d + 2, e, e + 1, e + 2, f, f + 1, f + 2))
+		else if (9 == sscanf(c, "f %i/%i/%i %i/%i/%i %i/%i/%i", d, d + 1, d + 2, e, e + 1, e + 2, f, f + 1, f + 2))
 		{
 			vertex A = {vertices[d[0] - 1], textures[d[1] - 1], normals[d[2] - 1]};
 			vertex B = {vertices[e[0] - 1], textures[e[1] - 1], normals[e[2] - 1]};
