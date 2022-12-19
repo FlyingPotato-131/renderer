@@ -33,13 +33,13 @@ struct plane{
 	vec3 norm;
 };
 
-struct color{
-	unsigned char r, g, b;
-};
-
 // struct color{
-// 	int r, g, b;
+// 	unsigned char r, g, b;
 // };
+
+struct color{
+	int r, g, b;
+};
 
 struct intersection{
 	bool exists;

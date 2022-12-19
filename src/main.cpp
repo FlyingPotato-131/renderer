@@ -31,8 +31,8 @@ int main()
   //  std::string line;
   //  std::ifstream in("Home/renderer/src/CedCo - LiAs R17 Venom II Revamp_export.obj");
 
-    std::vector<triangle> mesh = Structs("../test-models/prop-plane/plane2.obj");
-    texture colors = loadtexture("../test-models/prop-plane/texture.png");
+    std::vector<triangle> mesh = Structs("../test-models/plane2/A6M.obj");
+    texture colors = loadtexture("../test-models/plane2/A6M.png");
     
     // std::vector<triangle> mesh = {
     //     {{{1, 1, 1}, {}, {}}, {{1, -1, 1}, {}, {}}, {{-1, -1, -1}, {}, {}}},
@@ -45,7 +45,7 @@ int main()
 
     Camera camera = 
     {
-        .position = {2.f, 0.5f, 2.f},
+        .position = {10.f, 3.f, 10.f},
         .at = object->box.center,
         .up = {0.f, 1.f, 0.f},
         .aspectRatio = 1.6,
