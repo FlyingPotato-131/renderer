@@ -8,8 +8,8 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 
-color background = {113, 189, 239};
-vec3 light = {100, 100, 100};
+color background = {246, 100, 151};
+vec3 light = {-10, 10, 10};
 
 struct texture{
 	color *map;
@@ -70,16 +70,17 @@ color shade(ray r, boxtree box, texture colors){
 	vec3 norm = sect.face.C.norm * (1 - sect.a - sect.b) + sect.face.B.norm * sect.b + sect.face.A.norm * sect.a;
 	vec2 tex = sect.face.C.tex * (1 - sect.a - sect.b) + sect.face.B.tex * sect.b + sect.face.A.tex * sect.a;
 	color pxcolor = getcolor(round((tex.x) * colors.w), round((1 - tex.y) * colors.h), colors);
+	//std::cout << color.r << " ";
 	//std::cout << tex.x << " " << tex.y << std::endl;
 	//color pxcolor = {255, 255, 255};
 	//std::cout << int(pxcolor.r) << " " << int(pxcolor.g) << " " << int(pxcolor.b) << std::endl;
 	//std::cout << norm.x << " " << norm.y << " " << norm.z << std::endl;
 	ray shadow = {sectpos, normalize(light - sectpos)};
 
-	//intersection shadowray = raytree(shadow, box);
+	intersection shadowray = raytree(shadow, box);
 
-	//float brightness = shadowray.exists ? 0 : std::max(0.f, dot(normalize(norm), normalize(light - sectpos)));
-	float brightness = std::max(0.f, dot(normalize(norm), -normalize(sectpos - light)));
+	float brightness = shadowray.exists ? 0 : std::max(0.f, dot(normalize(norm), normalize(light - sectpos)));
+	//float brightness = std::max(0.f, dot(normalize(norm), -normalize(sectpos - light)));
 	//std::cout << brightness << " ";
 	color lightcolor = {255, 255, 255};
 
